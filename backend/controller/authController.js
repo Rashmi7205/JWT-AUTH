@@ -1,5 +1,6 @@
 const userModel= require('../model/dbschema');
 const emailValidator = require("email-validator");
+const bcrypt=require('bcrypt');
 
 
 exports.signUp  = async(req,res,next)=>{
@@ -34,8 +35,7 @@ exports.signUp  = async(req,res,next)=>{
     /// Saving the data in db
     const result =  await userInfo.save();
 
-    return 
-    res.status(200).json({
+    return res.status(200).json({
         success:true,
         data:result
     });
@@ -57,24 +57,98 @@ exports.signUp  = async(req,res,next)=>{
 
 ///signin 
 
-exports.signIn = async (req,res)=>{
+exports.signIn = async (req,res,next)=>{
     const {email,password} = req.body;
-
-    if(!email || !password){
+    console.log(req.body)
+    try {
+        if(!email || !password){
+            return res.status(404).json({
+                success:false,
+                message:"Every Field is mandatory"
+            })
+        }
+        const user = await userModel.findOne({
+            email
+        }).
+        select('+password');
+    
+        if(!user ||!(await bcrypt.compare(password,user.password))){
+            return res.status(404).json({
+                success:false,
+                message:"Invalid Credentials"
+            })
+        }
+        /// Generaring Token
+        const token = user.jwtToken();
+        /// Making password undefined
+        user.password=undefined;
+    
+        /// Writting the Cookie options
+        const cookieOptions = {
+            maxAge:24*60*60*1000, /// Time limit of expiry of cookie
+            httpOnly:true  /// cannot access from the client Side js
+        };
+        /// Set the Cookie
+        res.cookie("token",token,cookieOptions); /// (cookiename,cookie,options)
+        return res.status(200).json({
+            success:true,
+            data:user
+        })
+    } catch (error) {
         return res.status(404).json({
             success:false,
-            message:"Every Field is mandatory"
+            message:error.message
         })
     }
-    const user = await userModel.find({
-        email
-    }).
-    select('+password');
+    
 
-    if(!user || !user.password){
+
+}
+
+
+/// get user fetails
+exports.getUser = async (req,res,next)=>{
+    /// gettin the user id from user
+    const userId = req.body.id;
+
+    ///Retriving data from the DB
+    try {
+        const userData= await userModel.findById(userId);
+        console.log(userData);
+        return res.status(200).json({
+            success:true,
+            message:"Data successfully Fetced",
+            data:userData
+        });
+    } catch (error) {
         return res.status(404).json({
             success:false,
-            message:"Invalid Credentials"
+            message:"Error "+error.message
+        })
+    }
+}
+
+/// logout user
+exports.logout= (req,res)=>{
+    try {
+        /// set the cookies option
+        const cookieOptions = {
+            expires:new Date(),
+            httpOnly:true
+        };
+
+        /// set cookies to null  or delete the cookies
+
+        res.cookie("token",null,cookieOptions);
+
+        return res.status(200).json({
+            success:true,
+            message:"Logged out successful"
+        })
+    } catch (error) {
+        return res.status(400).json({
+            success:false,
+            message:error.message
         })
     }
 }
