@@ -16,7 +16,8 @@ jwt token
 
 Dependencies
 -----------
-express 
+<ul>
+
 cookie-parser 
 bcrypt 
 mongoose 
@@ -25,3 +26,4 @@ cors
 email-validator 
 dotenv
 nodemon
+</ul>
