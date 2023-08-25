@@ -5,7 +5,6 @@ const bcrypt=require('bcrypt');
 
 exports.signUp  = async(req,res,next)=>{
     const {name,email,password,confirmPassword} = req.body;
-    console.log(req.body);
 
     if(!name|| !email || !password || !confirmPassword){
         return  res.status(401).json({
@@ -42,7 +41,7 @@ exports.signUp  = async(req,res,next)=>{
     }
     catch(err){
         /// if dupliacte found
-        if(err.code = 11000){
+        if(err.code == 11000){
             return res.status(401).json({
                 success:false,
                 message:`Already email exist`

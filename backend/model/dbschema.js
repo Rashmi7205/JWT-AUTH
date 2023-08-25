@@ -34,7 +34,7 @@ const userSchema = new Schema({
 });
 
 /// middleware in the schema
-userSchema.pre("save",async(next)=>{
+userSchema.pre("save",async function(next){
     if(!this.isModified('password')){
         return next();
     }
