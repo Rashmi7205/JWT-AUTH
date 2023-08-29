@@ -5,7 +5,7 @@ const MONGO_URL = process.env.MONGODB_URL;
 
 const databaseConnect = ()=>{
 
-    mongoose.connect(MONGO_URL)
+    mongoose.connect(process.env.MONGODB_URL)
     .then((conn)=>{
         console.log(`Db connected succesfuly ${conn.connection.host}`);
     })
